@@ -1,21 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { 
   Upload, 
   Download, 
-  Users, 
   TrendingUp, 
-  Activity,
-  Play,
-  Pause
+  Search,
+  Users,
+  UserCheck,
+  Trophy,
+  User
 } from "lucide-react";
-import { mockUser, mockTransfers, formatFileSize, formatSpeed } from "@/lib/mockData";
+import { mockUser, mockTransfers, formatFileSize } from "@/lib/mockData";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const activeTransfers = mockTransfers.filter(t => t.status === 'downloading' || t.status === 'uploading');
-  const recentTransfers = mockTransfers.slice(0, 3);
+  const navigate = useNavigate();
+  const recentUploads = mockTransfers.filter(t => t.status === 'uploading' || t.status === 'completed').slice(0, 4);
+  const recentDownloads = mockTransfers.filter(t => t.status === 'downloading' || t.status === 'completed').slice(0, 4);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -27,135 +30,55 @@ const Dashboard = () => {
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed': return 'Completed';
-      case 'downloading': return 'Downloading';
-      case 'uploading': return 'Uploading';
-      case 'failed': return 'Failed';
-      default: return 'Unknown';
-    }
-  };
+  const privateNetworks = [
+    { name: "Developer Team", members: 12, status: "connected" },
+    { name: "Movie Archive", members: 45, status: "connect" },
+    { name: "Music Collection", members: 8, status: "connected" }
+  ];
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Welcome back, {mockUser.username}</h1>
-            <p className="text-muted-foreground mt-1">Your P2P network dashboard</p>
-          </div>
+          <h1 className="text-5xl font-bold text-foreground text-center flex-1">Torrentium</h1>
           <div className="flex gap-3">
-            <Button variant="outline" size="sm">
-              <Activity className="h-4 w-4 mr-2" />
-              Network Status
+            <Button 
+              variant="secondary" 
+              size="sm"
+              onClick={() => navigate("/leaderboard")}
+              className="flex items-center gap-2"
+            >
+              <Trophy className="h-4 w-4" />
+              Leaderboard
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate("/profile")}
+              className="flex items-center gap-2"
+            >
+              <User className="h-4 w-4" />
+              My Profile
             </Button>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-card shadow-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">Files Shared</CardTitle>
-              <Upload className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-card-foreground">{mockUser.totalShared}</div>
-              <p className="text-xs text-muted-foreground">+12% from last month</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card shadow-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">Files Downloaded</CardTitle>
-              <Download className="h-4 w-4 text-secondary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-card-foreground">{mockUser.totalDownloaded}</div>
-              <p className="text-xs text-muted-foreground">+8% from last month</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card shadow-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">Trust Score</CardTitle>
-              <TrendingUp className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-card-foreground">{mockUser.trustScore}%</div>
-              <p className="text-xs text-muted-foreground">+3% from last month</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card shadow-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">Active Peers</CardTitle>
-              <Users className="h-4 w-4 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-card-foreground">23</div>
-              <p className="text-xs text-muted-foreground">4 online now</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Active Transfers */}
-          <Card className="bg-card shadow-card border-border">
+        {/* Main Content Grid - 3 Columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recent Uploads - Highlighted with Blue Border */}
+          <Card className="bg-card shadow-card border-2 border-primary">
             <CardHeader>
-              <CardTitle className="text-card-foreground">Active Transfers</CardTitle>
+              <CardTitle className="text-card-foreground flex items-center gap-2">
+                <Upload className="h-5 w-5 text-primary" />
+                Uploads
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {activeTransfers.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No active transfers</p>
-              ) : (
-                activeTransfers.map((transfer) => (
-                  <div key={transfer.id} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                            {transfer.status === 'downloading' || transfer.status === 'uploading' ? (
-                              <Pause className="h-3 w-3" />
-                            ) : (
-                              <Play className="h-3 w-3" />
-                            )}
-                          </Button>
-                        </div>
-                        <div>
-                          <p className="font-medium text-card-foreground text-sm">{transfer.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatFileSize(transfer.size)} • {formatSpeed(transfer.speed)}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className={getStatusColor(transfer.status)}>
-                        {getStatusText(transfer.status)}
-                      </Badge>
-                    </div>
-                    <Progress value={transfer.progress} className="h-2" />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{transfer.progress}% complete</span>
-                      <span>{formatSpeed(transfer.speed)}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Activity */}
-          <Card className="bg-card shadow-card border-border">
-            <CardHeader>
-              <CardTitle className="text-card-foreground">Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recentTransfers.map((transfer) => (
-                <div key={transfer.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${getStatusColor(transfer.status)}`} />
+            <CardContent className="space-y-3">
+              {recentUploads.map((transfer) => (
+                <div key={transfer.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/20">
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-4 w-4 text-primary" />
                     <div>
                       <p className="font-medium text-card-foreground text-sm">{transfer.name}</p>
                       <p className="text-xs text-muted-foreground">
@@ -163,9 +86,126 @@ const Dashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className={getStatusColor(transfer.status)}>
-                    {getStatusText(transfer.status)}
+                  <Badge 
+                    variant="outline" 
+                    className={`${getStatusColor(transfer.status)} text-white border-none`}
+                  >
+                    {transfer.status === 'completed' ? 'completed' : 'uploading'}
                   </Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Recent Downloads */}
+          <Card className="bg-card shadow-card border-border">
+            <CardHeader>
+              <CardTitle className="text-card-foreground flex items-center gap-2">
+                <Download className="h-5 w-5 text-secondary" />
+                Downloads
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {recentDownloads.map((transfer) => (
+                <div key={transfer.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/20">
+                  <div className="flex items-center gap-2">
+                    <Download className="h-4 w-4 text-secondary" />
+                    <div>
+                      <p className="font-medium text-card-foreground text-sm">{transfer.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(transfer.size)} • {new Date(transfer.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge 
+                    variant="outline" 
+                    className={`${getStatusColor(transfer.status)} text-white border-none`}
+                  >
+                    {transfer.status === 'completed' ? 'completed' : 'downloading'}
+                  </Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Stats */}
+          <Card className="bg-card shadow-card border-border">
+            <CardHeader>
+              <CardTitle className="text-card-foreground flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-success" />
+                Stats
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Trust Score</span>
+                <span className="text-2xl font-bold text-success">{mockUser.trustScore}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Files Shared</span>
+                <span className="text-xl font-semibold text-card-foreground">{mockUser.totalShared.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Downloaded</span>
+                <span className="text-xl font-semibold text-card-foreground">{mockUser.totalDownloaded.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Data Transferred</span>
+                <span className="text-xl font-semibold text-card-foreground">2.4 TB</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Bottom Section - 2 Columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Search */}
+          <Card className="bg-card shadow-card border-border">
+            <CardHeader>
+              <CardTitle className="text-card-foreground flex items-center gap-2">
+                <Search className="h-5 w-5 text-warning" />
+                Search
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search files, torrents, or users..." 
+                  className="pl-10 bg-muted/20 border-border focus:border-primary"
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Search across the network for files, torrents, and trusted peers
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Quick Access Private Networks */}
+          <Card className="bg-card shadow-card border-border">
+            <CardHeader>
+              <CardTitle className="text-card-foreground flex items-center gap-2">
+                <Users className="h-5 w-5 text-accent" />
+                Quick Access Private Networks
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {privateNetworks.map((network, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${network.status === 'connected' ? 'bg-success' : 'bg-muted'}`} />
+                    <div>
+                      <p className="font-medium text-card-foreground text-sm">{network.name}</p>
+                      <p className="text-xs text-muted-foreground">{network.members} members</p>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant={network.status === 'connected' ? 'secondary' : 'outline'}
+                    className="text-xs"
+                  >
+                    {network.status === 'connected' ? 'Connected' : 'Connect'}
+                  </Button>
                 </div>
               ))}
             </CardContent>
